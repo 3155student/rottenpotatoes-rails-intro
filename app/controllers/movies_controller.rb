@@ -11,24 +11,46 @@ class MoviesController < ApplicationController
   end
 
   def index
+    
+    @all_ratings = Movie.get_possible_ratings
+
+    unless params[:ratings].nil?
+    
+      @filtered_ratings = params[:ratings].keys
+      session[:rating_filter] = @filtered_ratings
+      
+    end
+
+   
+    if params[:working_sort].nil?
+  
+    else
+      session[:working_sort] = params[:working_sort]
+    end
+
+    @movies = Movie.all
+
+    if session[:rating_filter]
+      @movies = @movies.select{ |movie| session[:rating_filter].include? movie.rating }
+    end
 
     
-    if params[:sort_titles] == "on"
-      
-      @movies = Movie.order("title")
+    if session[:working_sort] == "title"
+    
+
+      @movies = @movies.sort! { |a, b| a.title <=> b.title }
+
       @movie_highlight = "hilite"
+    elsif session[:working_sort] == "release_date"
       
-    elsif params[:sort_dates] == "on"
-    
-      @movies = Movie.order("release_date")
+
+      @movies = @movies.sort! { |a, b| a.release_date <=> b.release_date }
+
       @date_highlight = "hilite"
-    
     else
-    
-      @movies = Movie.all
-    
+      
     end
-    
+	
   end
 
   def new
