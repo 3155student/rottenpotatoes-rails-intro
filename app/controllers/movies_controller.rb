@@ -16,8 +16,8 @@ class MoviesController < ApplicationController
 
     unless params[:ratings].nil?
     
-      @filtered_ratings = params[:ratings].keys
-      session[:rating_filter] = @filtered_ratings
+      @rating_filter = params[:ratings]
+      session[:rating_filter] = @rating_filter
       
     end
 
@@ -28,10 +28,22 @@ class MoviesController < ApplicationController
       session[:working_sort] = params[:working_sort]
     end
 
+    if params[:working_sort].nil? && params[:ratings].nil? && session[:rating_filter]
+      
+      @rating_filter = session[:rating_filter]
+      @working_sort = session[:working_sort]
+    
+      flash.keep
+      redirect_to movies_path({order_by: @working_sort, ratings: @rating_filter})
+      
+    end
+    
     @movies = Movie.all
 
     if session[:rating_filter]
+      
       @movies = @movies.select{ |movie| session[:rating_filter].include? movie.rating }
+      
     end
 
     
@@ -41,12 +53,14 @@ class MoviesController < ApplicationController
       @movies = @movies.sort! { |a, b| a.title <=> b.title }
 
       @movie_highlight = "hilite"
+      
     elsif session[:working_sort] == "release_date"
       
 
       @movies = @movies.sort! { |a, b| a.release_date <=> b.release_date }
 
       @date_highlight = "hilite"
+      
     else
       
     end
